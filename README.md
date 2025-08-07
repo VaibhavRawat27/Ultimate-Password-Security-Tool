@@ -36,7 +36,11 @@ streamlit run password_checker_app.py
 
 ## 📸 Screenshots
 
-![screenshot](https://user-images.githubusercontent.com/your-placeholder-image-url.png)
+<img width="992" height="600" alt="image" src="https://github.com/user-attachments/assets/835bacf4-151d-4e7b-813b-37e538373e9a" />
+
+<img width="852" height="516" alt="image" src="https://github.com/user-attachments/assets/85bcd664-476a-44b2-8585-5eb483e19f64" />
+
+<img width="1060" height="333" alt="image" src="https://github.com/user-attachments/assets/e9d1f967-2d9d-4d44-8ea9-5382c5b2bb92" />
 
 ## 🧩 Example Use
 
