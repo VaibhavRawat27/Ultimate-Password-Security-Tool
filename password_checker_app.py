@@ -1,6 +1,8 @@
 import streamlit as st
 from zxcvbn import zxcvbn
 import math
+import random
+import string
 
 # Sample list of most common leaked passwords (extendable)
 leaked_passwords = [
@@ -43,6 +45,26 @@ def strength_label(score):
         4: ("Very Strong", "🟢")
     }.get(score, ("Unknown", "⚪"))
 
+def improve_password(password, length=14):
+    """Generate a stronger password based on the user's input."""
+    base = password
+    chars = string.ascii_letters + string.digits + "!@#$%^&*()-_+=<>?/|{}[]"
+    
+    # Ensure at least one of each type
+    improved = [
+        random.choice(string.ascii_uppercase),
+        random.choice(string.ascii_lowercase),
+        random.choice(string.digits),
+        random.choice("!@#$%^&*()-_+=<>?/|{}[]")
+    ]
+
+    # Fill the rest randomly
+    while len(improved) < max(length, len(password) + 4):
+        improved.append(random.choice(chars))
+
+    random.shuffle(improved)
+    return ''.join(improved)
+
 # --- Streamlit UI ---
 st.set_page_config(page_title="🔐 Smart Password Checker", layout="centered")
 
@@ -53,7 +75,7 @@ password = st.text_input("Enter your password", type="password")
 
 if password:
     st.divider()
-    
+
     # Run analysis
     analysis = zxcvbn(password)
     score = analysis['score']
@@ -66,13 +88,13 @@ if password:
     st.markdown(f"**Strength:** {label} {icon}")
     st.markdown(f"**Entropy:** {entropy_val} bits")
     st.markdown(f"**Estimated Crack Time:** `{crack_time}`")
-    
+
     # Leaked password check
     if is_leaked(password):
         st.error("❌ This password is among the most commonly leaked ones!")
     else:
         st.success("✅ This password is not a commonly leaked one.")
-    
+
     # Suggestions
     suggestions = get_suggestions(password)
     if suggestions:
@@ -82,7 +104,12 @@ if password:
     else:
         st.success("✅ Your password meets all best practices!")
 
+    # Suggest improved password
+    st.markdown("---")
+    if st.button("🔁 Suggest Improved Password"):
+        improved = improve_password(password)
+        st.info("✅ Here's a stronger version of your password:")
+        st.code(improved, language="text")
+
     st.divider()
-
     st.caption("⚠️ Never reuse passwords across platforms. Use a password manager for safe storage.")
-
