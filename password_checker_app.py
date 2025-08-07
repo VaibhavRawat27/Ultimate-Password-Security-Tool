@@ -1,16 +1,17 @@
 import streamlit as st
 from zxcvbn import zxcvbn
-import math
 import random
 import string
+import math
 
-# Sample list of most common leaked passwords (extendable)
+# Leaked password examples
 leaked_passwords = [
     '123456', 'password', '123456789', '12345678', '12345',
     'qwerty', 'abc123', 'football', '123123', '111111',
     'welcome', 'monkey', 'dragon', 'letmein', 'admin'
 ]
 
+# Functions
 def is_leaked(password):
     return password.lower() in leaked_passwords
 
@@ -45,71 +46,70 @@ def strength_label(score):
         4: ("Very Strong", "🟢")
     }.get(score, ("Unknown", "⚪"))
 
-def improve_password(password, length=14):
-    """Generate a stronger password based on the user's input."""
-    base = password
+def generate_strong_password(length=16):
     chars = string.ascii_letters + string.digits + "!@#$%^&*()-_+=<>?/|{}[]"
-    
-    # Ensure at least one of each type
-    improved = [
+    return ''.join(random.choice(chars) for _ in range(length))
+
+def improve_existing_password(password):
+    # Add complexity to the user-entered password
+    base = ''.join(random.sample(password, len(password)))
+    extras = [
         random.choice(string.ascii_uppercase),
         random.choice(string.ascii_lowercase),
         random.choice(string.digits),
         random.choice("!@#$%^&*()-_+=<>?/|{}[]")
     ]
-
-    # Fill the rest randomly
-    while len(improved) < max(length, len(password) + 4):
-        improved.append(random.choice(chars))
-
-    random.shuffle(improved)
-    return ''.join(improved)
+    while len(base) + len(extras) < 14:
+        extras.append(random.choice(string.ascii_letters + string.digits + "!@#$%^&*()-_+=<>?/|{}[]"))
+    improved = base + ''.join(extras)
+    return ''.join(random.sample(improved, len(improved)))
 
 # --- Streamlit UI ---
-st.set_page_config(page_title="🔐 Smart Password Checker", layout="centered")
+st.set_page_config(page_title="🔐 Ultimate Password Tool", layout="centered")
+st.title("🔐 Ultimate Password Security Tool")
+st.caption("Analyze, improve, and generate secure passwords instantly.")
 
-st.title("🔐 Smart Password Checker")
-st.caption("Check if your password is strong, safe, and unguessable.")
+# Section: Analyze & Improve Password
+st.header("🔍 Analyze & Improve Your Password")
+user_password = st.text_input("Enter a password to analyze/improve", type="password")
 
-password = st.text_input("Enter your password", type="password")
-
-if password:
-    st.divider()
-
-    # Run analysis
-    analysis = zxcvbn(password)
+if user_password:
+    st.subheader("Password Analysis Results")
+    analysis = zxcvbn(user_password)
     score = analysis['score']
-    entropy_val = entropy(password)
     crack_time = analysis['crack_times_display']['offline_fast_hashing_1e10_per_second']
+    entropy_val = entropy(user_password)
     label, icon = strength_label(score)
 
-    # Results
-    st.subheader("🔍 Password Analysis")
     st.markdown(f"**Strength:** {label} {icon}")
-    st.markdown(f"**Entropy:** {entropy_val} bits")
+    st.markdown(f"**Entropy:** `{entropy_val} bits`")
     st.markdown(f"**Estimated Crack Time:** `{crack_time}`")
 
-    # Leaked password check
-    if is_leaked(password):
-        st.error("❌ This password is among the most commonly leaked ones!")
+    if is_leaked(user_password):
+        st.error("🚨 This password is commonly leaked! Avoid using it.")
     else:
-        st.success("✅ This password is not a commonly leaked one.")
+        st.success("✅ This password is not among commonly leaked ones.")
 
-    # Suggestions
-    suggestions = get_suggestions(password)
+    suggestions = get_suggestions(user_password)
     if suggestions:
-        st.warning("🔧 Suggestions to improve your password:")
+        st.warning("🔧 Suggestions:")
         for s in suggestions:
             st.markdown(f"- {s}")
     else:
-        st.success("✅ Your password meets all best practices!")
+        st.success("✅ Your password follows best practices!")
 
-    # Suggest improved password
-    st.markdown("---")
-    if st.button("🔁 Suggest Improved Password"):
-        improved = improve_password(password)
-        st.info("✅ Here's a stronger version of your password:")
+    if st.button("✨ Improve This Password"):
+        improved = improve_existing_password(user_password)
+        st.info("🔒 Improved Password:")
         st.code(improved, language="text")
 
-    st.divider()
-    st.caption("⚠️ Never reuse passwords across platforms. Use a password manager for safe storage.")
+st.divider()
+
+# Section: Generate Strong Password
+st.header("⚙️ Generate a Strong New Password")
+if st.button("🔁 Generate Strong Password"):
+    generated = generate_strong_password()
+    st.success("Here’s a strong password you can use:")
+    st.code(generated, language="text")
+
+st.caption("✅ Tip: Use a password manager to store strong passwords securely.")
